@@ -1,0 +1,25 @@
+# 4. Performance Benchmarks
+
+## CPU benchmark questions
+
+1. Look at your LINPACK measurements. Are they consistent with your expectations? If not, what could be the reason?
+
+## Memory benchmark questions
+
+1. Look at your memsweep measurements. Are they consistent with your expectations? If not, what could be the reason?
+
+## Disk benchmark questions
+
+1. Look at your disk write measurements. Are they consistent with your expectations? If not, what could be the reason?
+2. Which disk format did you use for qemu? How do you expect this benchmark to behave differently on other disk formats?
+
+## Fork benchmark questions
+
+1. Look at your fork sum measurements. Are they consistent with your expectations? If not, what could be the reason?
+2. [not optional] Why did we exclude this benchmark from the Rump Unikernel? How can you adapt the experiment for this platform?
+
+## Nginx benchmark questions
+
+1. Look at your nginx measurements. Are they consistent with your expectations? If not, what could be the reason?
+
+2. How do your measurements relate to the disk benchmark findings?

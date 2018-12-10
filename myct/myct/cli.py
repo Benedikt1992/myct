@@ -1,5 +1,6 @@
 import argparse
 import os
+from myct.utils import split_key_value
 
 
 class CLI:
@@ -33,8 +34,8 @@ class CLI:
         parser_run.add_argument('path', metavar='<container-path>')
         parser_run.add_argument('exec', metavar='<executable>')
         parser_run.add_argument('exec_args', metavar='args', nargs='*')
-        parser_run.add_argument('--namespace', metavar='<kind>=<pid>', help='Join a namespace.')  # With 'type=' we could achieve automated splitting
-        parser_run.add_argument('--limit', action='append', metavar='<controller.key>=<value>', help='Define limits. May repeat')  # With 'type=' we could achieve automated splitting
+        parser_run.add_argument('--namespace', type=split_key_value, metavar='<kind>=<pid>', help='Join a namespace.')  # With 'type=' we could achieve automated splitting
+        parser_run.add_argument('--limit', action='append', type=split_key_value, metavar='<controller.key>=<value>', help='Define limits. May repeat')  # With 'type=' we could achieve automated splitting
         parser_run.set_defaults(func=self._run_command)
 
         args, unknown = parser.parse_known_args()

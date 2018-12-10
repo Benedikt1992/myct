@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
 
-from myct.myct import run
+from myct.cli import run
 
 run()

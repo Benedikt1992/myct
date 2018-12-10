@@ -68,7 +68,7 @@ setup(
     # executable scripts
     entry_points={
         'console_scripts': [
-            'myct=myct.myct:run'
+            'myct=myct.cli:run'
         ],
     },
 )

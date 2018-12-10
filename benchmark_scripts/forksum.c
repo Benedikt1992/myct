@@ -17,7 +17,7 @@
 
 /* function declarations */
 void parent(int pipefd[]);
-void childPipeHandling(int pipefd[], long int start, long int end);
+void child_pipe_handling(int pipefd[], long int start, long int end);
 void forksum(long int start, long int end);
 long int read_value(FILE* pipe);
 
@@ -62,13 +62,13 @@ void forksum(long int start, long int end) { // forksum is recursive!
         pid_t pid;
         while( (pid = fork()) < 0 ) usleep(50000);
         if(pid == 0) {                      /* leftside child  */
-            childPipeHandling(pipefd, start, pivot);
+            child_pipe_handling(pipefd, start, pivot);
         } else {                            /* parent          */
             // fork rightside
             pid_t pid2;
             while( (pid2 = fork()) < 0 ) usleep(50000);
             if(pid2 == 0) {                 /* rightside child */
-                childPipeHandling(pipefd, pivot+1, end);
+                child_pipe_handling(pipefd, pivot+1, end);
             } else {                        /* still parent    */
                 parent(pipefd);
             }
@@ -103,7 +103,7 @@ long int read_value(FILE* pipe) {
     return value;
 }
 
-void childPipeHandling(int pipefd[], long int start, long int end) {
+void child_pipe_handling(int pipefd[], long int start, long int end) {
     close(pipefd[PIPE_READ]);
     dup2(pipefd[PIPE_WRITE], STDOUT_FILENO);
     forksum(start, end); // recursion!

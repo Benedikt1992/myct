@@ -4,7 +4,7 @@ if [ ! -e $EXECUTABLE ] ; then
 	echo "Compiling memsweep.c"
 	cc -O -o memsweep memsweep.c -lm
 fi
-ROUNDS=4
+ROUNDS=2
 VALUES=()
 
 for i in $(seq 1 $ROUNDS); do

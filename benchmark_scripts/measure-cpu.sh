@@ -1,7 +1,7 @@
 #!/bin/bash 
 EXECUTABLE="linpack"
 if [ ! -e $EXECUTABLE ] ; then
-	#echo "Compiling linpack.c"
+	echo "Compiling linpack.c"
 	cc -O -o linpack linpack.c -lm
 fi
 

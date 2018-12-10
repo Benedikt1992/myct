@@ -90,7 +90,7 @@ int main(void)
     printf("    Reps Time(s) DGEFA   DGESL  OVERHEAD    KFLOPS\n");
     printf("----------------------------------------------------\n");
     nreps=1;
-    while (linpack(nreps,arsize)<7.)
+    while (linpack(nreps,arsize)<3.)
 	nreps*=2;
     free(mempool);
 	return 0;

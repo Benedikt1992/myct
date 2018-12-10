@@ -58,7 +58,7 @@ class CLI:
         """
         if unknown:
             raise argparse.ArgumentTypeError("Detected unknown arguments: {!s}".format(str(unknown)))
-        print("Mode init: " + str(args))
+        print("Mode init with path: " + str(args.path))
 
     def _mode_map(self, args, unknown):
         """
@@ -67,7 +67,7 @@ class CLI:
         """
         if unknown:
             raise argparse.ArgumentTypeError("Detected unknown arguments: {!s}".format(str(unknown)))
-        print("Mode map: " + str(args))
+        print("Mode map with container {}, host path {} and target {}.".format(args.cpath, args.hpath, args.tpath))
 
     def _mode_run(self, args, unknown):
         """
@@ -78,7 +78,7 @@ class CLI:
         --limit <controller.key>=<value>
         """
         args.exec_args += unknown
-        print("Mode run: " + str(args))
+        print("Mode run with container {} and the executable {} with arguments {}.".format(args.path, args.exec, args.exec_args))
 
 def run():
     CLI().run()

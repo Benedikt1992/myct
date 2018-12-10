@@ -2,16 +2,15 @@
 
 import os
 import shutil
-import distutils.cmd
-import distutils.log
+from distutils.cmd import Command
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 with open(os.path.join('myct', 'VERSION')) as version_file:
     version = version_file.read().strip()
 
 
-class CleanAllCommand(distutils.cmd.Command):
+class CleanAllCommand(Command):
     """A custom command to clean the project directory."""
 
     description = 'remove build artifacts from build, *dist, etc'
@@ -22,7 +21,7 @@ class CleanAllCommand(distutils.cmd.Command):
     boolean_options = ['includeDistributions']
 
     def initialize_options(self):
-        """Set default values for options."""
+        """ Set default values for options."""
         self.includeDistributions = None
 
     def finalize_options(self):

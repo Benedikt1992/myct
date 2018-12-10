@@ -56,15 +56,17 @@ void forksum(long int start, long int end) { // forksum is recursive!
 
         // create pipes
         int pipefd[2];
-        pipe(pipefd);
+        int _ = pipe(pipefd); // ignore result
 
         // fork leftside
-        pid_t pid = fork();
+        pid_t pid;
+        while( (pid = fork()) < 0 ) usleep(50000);
         if(pid == 0) {                      /* leftside child  */
             childPipeHandling(pipefd, start, pivot);
         } else {                            /* parent          */
             // fork rightside
-            pid_t pid2 = fork();
+            pid_t pid2;
+            while( (pid2 = fork()) < 0 ) usleep(50000);
             if(pid2 == 0) {                 /* rightside child */
                 childPipeHandling(pipefd, pivot+1, end);
             } else {                        /* still parent    */
@@ -81,6 +83,7 @@ void parent(int pipefd[]) {
     // wait for childs and read both values
     wait(NULL);
     long int value_left = read_value(pipe);
+    wait(NULL);
     long int value_right = read_value(pipe);
 
     // print result to stdout (or linked pipe fd)
@@ -94,6 +97,7 @@ long int read_value(FILE* pipe) {
     long int value;
     if(fscanf(pipe, "%ld", &value) == EOF) {
         // ignore error (could not read from pipe) and assume 0
+        // perror("could not read from pipe");
         value = 0;
     }
     return value;

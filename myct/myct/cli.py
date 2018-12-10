@@ -1,4 +1,5 @@
 import argparse
+import os
 
 
 class CLI:
@@ -71,4 +72,6 @@ class CLI:
 
 
 def run():
+    # if os.name == 'nt':
+    #     raise NotImplementedError("Not implemented for Windows.")
     CLI().run()

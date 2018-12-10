@@ -11,13 +11,6 @@ class CLI:
         Parse arguments and start selected mode
         """
         parser = argparse.ArgumentParser(description="Create and control containers with the 'My Container Tool'.")
-        # parser.add_argument('mode',
-        #                     help='an integer for the accumulator')
-        # parser.add_argument('init', metavar='N', type=int, nargs='+',
-        #                     help='an integer for the accumulator')
-        # parser.add_argument('--sum', dest='accumulate', action='store_const',
-        #                     const=sum, default=max,
-        #                     help='sum the integers (default: find the max)')
         subparsers = parser.add_subparsers(title='mode',
                                            # dest='mode',
                                            metavar='MODE',
@@ -28,26 +21,21 @@ class CLI:
         parser_init.add_argument('path', metavar='<container-path>')
         parser_init.set_defaults(func=self._mode_init)
 
-        parser_init = subparsers.add_parser('map',
+        parser_map = subparsers.add_parser('map',
                                             help='Mounts a host directory read-only into the container at given target')
-        parser_init.add_argument('cpath', metavar='<container-path>')
-        parser_init.add_argument('hpath', metavar='<host-path>')
-        parser_init.add_argument('tpath', metavar='<target-path>')
-        parser_init.set_defaults(func=self._mode_map)
+        parser_map.add_argument('cpath', metavar='<container-path>')
+        parser_map.add_argument('hpath', metavar='<host-path>')
+        parser_map.add_argument('tpath', metavar='<target-path>')
+        parser_map.set_defaults(func=self._mode_map)
 
-        parser_init = subparsers.add_parser('run', help='Runs the file exectuable in container with passed arguments')
-        parser_init.add_argument('path', metavar='<container-path>')
-        parser_init.add_argument('exec', metavar='<executable>')
-        parser_init.add_argument('exec_args', metavar='args', nargs='*')
-        parser_init.set_defaults(func=self._mode_run)
+        parser_run = subparsers.add_parser('run', help='Runs the file exectuable in container with passed arguments')
+        parser_run.add_argument('path', metavar='<container-path>')
+        parser_run.add_argument('exec', metavar='<executable>')
+        parser_run.add_argument('exec_args', metavar='args', nargs='*')
+        parser_run.add_argument('--namespace', help='Join a namespace <kind>=<pid>')  # With 'type=' we could achieve automated splitting
+        parser_run.add_argument('--limit', action='append', help='Define limits <controller.key>=<value>')  # With 'type=' we could achieve automated splitting
+        parser_run.set_defaults(func=self._mode_run)
 
-
-        # myct
-        # run < container - path > [options] < executable > [args...]
-        # with options being:
-        #     --namespace < kind >= < pid >
-        # --limit < controller.key >= < value >
-        #
         args, unknown = parser.parse_known_args()
         args.func(args, unknown)
 
@@ -78,7 +66,9 @@ class CLI:
         --limit <controller.key>=<value>
         """
         args.exec_args += unknown
-        print("Mode run with container {} and the executable {} with arguments {}.".format(args.path, args.exec, args.exec_args))
+        print("Mode run with container {} and the executable {} with arguments {}.\nJoin namespace {} and set limits {}".format(
+            args.path, args.exec, args.exec_args, args.namespace, args.limit))
+
 
 def run():
     CLI().run()

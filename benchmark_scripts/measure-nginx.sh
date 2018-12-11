@@ -4,7 +4,6 @@
 # Since all tests run on the same host and only on virtual networks this shouldn't compromise comparability.
 THREADS=2
 
-
 host_port=$1
 VALUES=()
 
@@ -12,8 +11,6 @@ for i in $(seq 1 $THREADS); do
     VALUES+=($((time curl http://$host_port/file.dat &>/dev/null) 2>&1 | grep real | cut -f 2 | awk '{gsub(",", ".", $0); split($0, a, "m|s"); printf("%.3f\n", a[1]*60+a[2])}' &))
 done
 wait
-
-printf '%s\n' "${VALUES[@]}"
 
 #sort array of results
 IFS=$'\n' SORTED_V=($(sort <<<"${VALUES[*]}"))

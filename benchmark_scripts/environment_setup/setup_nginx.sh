@@ -15,6 +15,6 @@ sudo apt-get clean
 sudo echo "\ndaemon off;" >> /etc/nginx/nginx.conf
 
 # static file to serve (must be generated first)
-cp ./file.dat /var/www/html
+cp ./docker/file.dat /var/www/html
 
 exit 0

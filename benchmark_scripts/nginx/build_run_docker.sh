@@ -4,7 +4,7 @@
 docker build -t nginx-static-serve . >/dev/null
 
 # make sure the container is not already running
-docker stop nginx 2>/dev/null && docker rm nginx 2>/dev/null
+docker stop nginx &> /dev/null && docker rm nginx &> /dev/null
 
 # run the image
 docker run -P -d --name=nginx nginx-static-serve >/dev/null

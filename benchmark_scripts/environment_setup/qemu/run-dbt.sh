@@ -3,7 +3,7 @@
 image_name="debian_stretch_i386.img"
 
 if ! [[ -e ${image_name} ]]; then
-    source ./download_image.sh
+    source ../download_image.sh
 fi
 
 qemu-system-i386 ${image_name} \

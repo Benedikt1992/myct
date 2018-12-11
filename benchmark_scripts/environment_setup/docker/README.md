@@ -21,7 +21,8 @@ and run the resulting container.
 
 The _nginx_ server running in the container is mapped to port `8080`.
 
-Usage example; _nginx_-benchmark:
+Usage example: _nginx_-benchmark:
+
 ```bash
 build_run_docker.sh
 measure-nginx.sh 127.0.0.1:8080

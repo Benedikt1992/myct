@@ -12,7 +12,7 @@ RUN git clone https://github.com/axboe/fio.git && \
     cd .. && rm -r fio
 
 # don't daemonize - container dies otherwise
-RUN echo "\ndaemon off;" >> /etc/nginx/nginx.conf
+RUN echo "" >> /etc/nginx/nginx.conf && echo "daemon off;" >> /etc/nginx/nginx.conf
 
 # internal port
 EXPOSE 80

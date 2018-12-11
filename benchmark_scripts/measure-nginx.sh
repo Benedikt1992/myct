@@ -6,10 +6,10 @@
 host_port=$1
 
 VALUES=()
-# VALUES+=(time curl http://$host_port/file.dat &>/dev/null) 2>&1 | grep real | cut -f 2 | awk '{gsub(",", ".", $0); split($0, a, "m|s"); printf("%.3f\n", a[1]*60+a[2])}' &
-# VALUES+=(time curl http://$host_port/file.dat &>/dev/null) 2>&1 | grep real | cut -f 2 | awk '{gsub(",", ".", $0); split($0, a, "m|s"); printf("%.3f\n", a[1]*60+a[2])}' &
-VALUES+=(echo 1 &)
-VALUES+=(echo 2 &)
+VALUES+=($((time curl http://$host_port/file.dat &>/dev/null) 2>&1 | grep real | cut -f 2 | awk '{gsub(",", ".", $0); split($0, a, "m|s"); printf("%.3f\n", a[1]*60+a[2])}' &))
+VALUES+=($((time curl http://$host_port/file.dat &>/dev/null) 2>&1 | grep real | cut -f 2 | awk '{gsub(",", ".", $0); split($0, a, "m|s"); printf("%.3f\n", a[1]*60+a[2])}' &))
+# VALUES+=(echo 1 &)
+# VALUES+=(echo 2 &)
 
 wait
 printf '%s\n' "${VALUES[@]}"

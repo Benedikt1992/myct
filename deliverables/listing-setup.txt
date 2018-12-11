@@ -130,13 +130,27 @@ Get:20 http://de.archive.ubuntu.com/ubuntu bionic/main amd64 libxen-4.9 amd64 4.
 # download debian x86 (32bit) image for qemu
 $ curl -o debian_wheezy_i386.qcow2 https://people.debian.org/~aurel32/qemu/i386/debian_wheezy_i386_standard.qcow2
 
+# test qemu installation by launching the downloaded image
+$ qemu-system-i386 debian_wheezy_i386.qcow2
+
 # check for kvm kernel module to be loaded
 $ lsmod | grep kvm
 kvm_intel             212992  0
 kvm                   598016  1 kvm_intel
 irqbypass              16384  1 kvm
 
-# test qemu installation by launching the downloaded image
-$ qemu-system-i386 debian_wheezy_i386.qcow2
+# install qemu kvm wrapper
+$ sudo apt install qemu-kvm
+# <removed output>
+Get:1 http://de.archive.ubuntu.com/ubuntu bionic-updates/main amd64 qemu-kvm amd64 1:2.11+dfsg-1ubuntu7.8 [13,2 kB]
+# <removed output>
 
-# qemu was successfully installed
+# add user to kvm group
+$ sudo adduser mocc kvm
+
+# logout and login from session again to make group change effective
+
+# test qemu-kvm installation by launching the downloaded image
+$ kvm debian_wheezy_i386.qcow2
+
+# qemu and qemu-kvm were successfully installed

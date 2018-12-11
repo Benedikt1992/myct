@@ -2,9 +2,10 @@
 
 # The time measured by the script includes the startup time of curl and network latency.
 # Since all tests run on the same host and only on virtual networks this shouldn't compromise comparability.
+THREADS=2
+
 
 host_port=$1
-THREADS=2
 VALUES=()
 
 for i in $(seq 1 $THREADS); do
@@ -22,9 +23,9 @@ unset IFS
 nel=${#SORTED_V[@]}
 if (( $nel % 2 == 1 )); then     # Odd number of elements
     val="${SORTED_V[ $(($nel/2)) ]}"
-    printf "%s,%s\n" "$(date +%s)" "$val" # seconds
+    printf "%s\n" "$val" # seconds
 else                            # Even number of elements
     j=$nel/2
     k=$j-1
-    printf "%s,%s\n" "$(date +%s)" "$(awk '{printf("%.2f",($1+$2)/2)}' <<<"${SORTED_V[$j]} ${SORTED_V[$k]}")" # seconds
+    printf "%s\n" "$(awk '{printf("%.3f",($1+$2)/2)}' <<<"${SORTED_V[$j]} ${SORTED_V[$k]}")" # seconds
 fi

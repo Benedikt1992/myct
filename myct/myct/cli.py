@@ -1,12 +1,26 @@
 import argparse
+import distutils
 import os
 from myct.utils import split_key_value
 
 
 class CLI:
 
+    dependencies = {
+        # 'executable':'package',
+        'debootstrap':'debootstrap',
+        'chroot':'chroot',
+        'unshare':'unshare',
+        'nsenter':'nsenter',
+        'cgexec':'cgroup-tools'
+    }
+
     def __init__(self):
-        pass
+        os.system('sudo apt-get update')
+        for exec,pkg in self.dependencies:
+            if not distutils.spawn.find_executable(exec):
+                print('Install ' + pkg)
+                os.system('sudo apt install ' + pkg)
 
     def run(self):
         """
@@ -49,6 +63,7 @@ class CLI:
         if unknown:
             raise argparse.ArgumentTypeError("Detected unknown arguments: {!s}".format(str(unknown)))
         print("Command init with path: " + str(args.path))
+        os.system('sudo debootstrap --no-merged-usr stable ' + args.path)
 
     def _map_command(self, args, unknown):
         """
@@ -73,6 +88,6 @@ class CLI:
 
 
 def run():
-    # if os.name == 'nt':
-    #     raise NotImplementedError("Not implemented for Windows.")
+    if os.name == 'nt':
+        raise NotImplementedError("Not implemented for Windows.")
     CLI().run()

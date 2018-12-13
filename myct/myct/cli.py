@@ -1,5 +1,5 @@
 import argparse
-import distutils
+import shutil
 import os
 from myct.utils import split_key_value
 
@@ -16,11 +16,14 @@ class CLI:
     }
 
     def __init__(self):
+        """
+        TODO color output (needs additional python package)
+        """
         os.system('sudo apt-get update')
-        for exec,pkg in self.dependencies:
-            if not distutils.spawn.find_executable(exec):
+        for exec,pkg in self.dependencies.items():
+            if not shutil.which(exec):
                 print('Install ' + pkg)
-                os.system('sudo apt install ' + pkg)
+                os.system('sudo apt -y install ' + pkg)
 
     def run(self):
         """
@@ -59,6 +62,8 @@ class CLI:
         """
         Creates a container in the given directory (downloads and extracts root file system)
         $ myct init <container-path>
+
+        TODO Possible additional arguments: mirror and suite (currently 'stable')
         """
         if unknown:
             raise argparse.ArgumentTypeError("Detected unknown arguments: {!s}".format(str(unknown)))

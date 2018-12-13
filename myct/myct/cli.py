@@ -89,7 +89,9 @@ class CLI:
         args.exec_args += unknown
         print("Command run with container {} and the executable {} with arguments {}.\nJoin namespace {} and set limits {}".format(
             args.path, args.exec, args.exec_args, args.namespace, args.limit))
-        # TODO FIX apt won't work as it seem to recognize the false root
+        # TODO FIX apt won't work as it seem to recognize the false root -> https://unix.stackexchange.com/questions/487870/filesystem-permission-problems-with-user-namespaces-and-debootstrap
+        #      QUICKFIX remove the flags --user and --map-root-user. This means the commands need sudo.
+        # TODO the unshare command is right now ultra restrictive. We probably need to drop some stuff like --net and --uts
         setup_commands_head = [
             'unshare --mount --uts --ipc --net --fork --user --map-root-user',
             'chroot ' + args.path,

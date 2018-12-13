@@ -89,22 +89,23 @@ class CLI:
         args.exec_args += unknown
         print("Command run with container {} and the executable {} with arguments {}.\nJoin namespace {} and set limits {}".format(
             args.path, args.exec, args.exec_args, args.namespace, args.limit))
-        # TODO FIX first unshare opens new child process with new bash. Second command ist not executed in that child process
-        os.system('unshare --mount --uts --ipc --net --fork --user --map-root-user /bin/bash')
-        os.system('chroot ' + args.path + ' /bin/bash')
-        os.system('unshare --pid --fork --mount-proc /bin/bash')
-        os.system('mount -t proc none /proc')
-        os.system('mount -t sysfs none /sys')
-        os.system('mount -t tmpfs none /tmp')
-        os.system(args.exec + ' ' + ' '.join(args.exec_args))
-        """
-        unshare --mount --uts --ipc --net --fork --user --map-root-user /bin/bash
-        chroot /tmp/test/ /bin/bash
-        unshare --pid --fork --mount-proc /bin/bash
-        mount -t proc none /proc
-        mount -t sysfs none /sys
-        mount -t tmpfs none /tmp
-        """
+        # TODO FIX apt won't work as it seem to recognize the false root
+        setup_commands_head = [
+            'unshare --mount --uts --ipc --net --fork --user --map-root-user',
+            'chroot ' + args.path,
+            'unshare --pid --fork /bin/bash -c'
+            ]
+
+        setup_commands_tail = [
+            'mount -t proc none /proc',
+            'mount -t sysfs none /sys',
+            'mount -t tmpfs none /tmp',
+            args.exec + ' ' + ' '.join(args.exec_args)
+        ]
+
+        setup_commands_head.append("'" + ' && '.join(setup_commands_tail) + "'")
+
+        os.system(' '.join(setup_commands_head))
 
 
 def run():

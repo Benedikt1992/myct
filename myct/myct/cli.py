@@ -68,6 +68,8 @@ class CLI:
             raise argparse.ArgumentTypeError("Detected unknown arguments: {!s}".format(str(unknown)))
         print("Command init with path: " + str(args.path))
         os.system('sudo debootstrap --no-merged-usr stable ' + args.path)
+        os.system('sudo chown -R $(/usr/bin/id -run). ' + args.path)
+
 
     def _map_command(self, args, unknown):
         """

@@ -287,8 +287,33 @@ $ exit
 $ fio --version
 fio-3.12-32-g0527
 
+# in another terminal on the host: copy benchmark and setup scripts to vm
+$ scp -r -P 22222 ./benchmark_scripts/*.sh user@127.0.0.1:~/mocc-submission/
+user@127.0.0.1's password:
+linpack.sh                                                                                                  100%  418   469.3KB/s   00:00
+measure-cpu.sh                                                                                              100%  394   749.7KB/s   00:00
+measure-disk-random.sh                                                                                      100%  290   664.8KB/s   00:00
+measure-fork.sh                                                                                             100%  340   330.7KB/s   00:00
+measure-mem.sh                                                                                              100%  821     1.3MB/s   00:00
+measure-nginx.sh                                                                                            100% 1311     1.9MB/s   00:00
+
+$ scp -r -P 22222 ./benchmark_scripts/*.c user@127.0.0.1:~/mocc-submission/
+user@127.0.0.1's password:
+forksum.c                                                                                                   100% 2936     2.7MB/s   00:00
+linpack.c                                                                                                   100%   21KB  13.4MB/s   00:00
+memsweep.c                                                                                                  100%  833     1.1MB/s   00:00
+
+$ scp -r -P 22222 ./benchmark_scripts/environment_setup/collect_environmeninfo.sh user@127.0.0.1:~/mocc-submission/
+user@127.0.0.1's password:
+collect_environmeninfo.sh                                                                                   100%  746   818.9KB/s   00:00
+
+$ scp -r -P 22222 ./benchmark_scripts/environment_setup/setup_nginx.sh user@127.0.0.1:~/mocc-submission/
+user@127.0.0.1's password:
+setup_nginx.sh                                                                                              100%  505   770.0KB/s   00:0
+
+$ scp -r -P 22222 ./benchmark_scripts/environment_setup/gen_serve_file.sh user@127.0.0.1:~/mocc-submission/
+user@127.0.0.1's password:
+gen_serve_file.sh
+
 # as root user: shutdown vm and save image
 $ shutdown now
-
-# TODO: show commands for copying benchmark scripts to vm
-

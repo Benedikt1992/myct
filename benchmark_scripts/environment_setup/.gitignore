@@ -5,3 +5,4 @@ docker/file.dat
 # qemu image files
 debian_stretch_i386.tar.xz
 debian_stretch_i386.img
+debian_stretch_i386_dbt.img

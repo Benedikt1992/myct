@@ -7,6 +7,6 @@ docker build -t mocc-benchmark .
 docker stop mocc && docker rm mocc
 
 # run the image
-docker run -p 8080:80 -d --name=mocc mocc-benchmark
+docker run -p 8080:80 -v $(pwd):/work -d --name=mocc mocc-benchmark
 
 exit 0

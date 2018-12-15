@@ -487,6 +487,7 @@ $ git --version
 git version 2.11.0
 
 $ fio --version
+fio-2.16
 
 ###############################################
 # docker guest

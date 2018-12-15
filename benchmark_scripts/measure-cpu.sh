@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 EXECUTABLE="linpack"
 if [ ! -e $EXECUTABLE ] ; then
 	echo "Compiling linpack.c"

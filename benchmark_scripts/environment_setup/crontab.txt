@@ -1,0 +1,9 @@
+# users crontab:
+1,6,11,16,21,26,31,36,41,46,51,56 * * * * cd /home/mocc/mocc_submission2/myct/benchmark_scripts; ./measure-cpu.sh >> /results/native-cpu.csv
+2,7,12,17,22,27,32,37,42,47,52,57 * * * * cd /home/mocc/mocc_submission2/myct/benchmark_scripts; ./measure-mem.sh >> /results/native-mem.csv
+3,8,13,18,23,28,33,38,43,48,53,58 * * * * cd /home/mocc/mocc_submission2/myct/benchmark_scripts; ./measure-disk-random.sh >> /results/native-disk-random.csv
+4,9,14,19,24,29,34,39,44,49,54,59 * * * * cd /home/mocc/mocc_submission2/myct/benchmark_scripts; ./measure-fork.sh >> /results/native-fork.csv
+5,10,15,20,25,30,35,30,45,50,55,0 * * * * cd/home/mocc/mocc_submission2/myct/benchmark_scripts; ./measure-nginx.sh localhost:80 >> /results/native-nginx.csv
+
+# roots crontab: for system cache flushes (needs UUID 0)
+5 * * * * (sleep 240; sync; echo 3 > /proc/sys/vm/drop_caches) 2> /results/errors

@@ -1,7 +1,7 @@
-#!/usr/bin/env bash 
+#!/usr/bin/env bash
 
 EXECUTABLE="forksum"
-ARGS="0 12800"
+ARGS="0 12000"
 if [ ! -e $EXECUTABLE ] ; then
 	echo "Compiling forksum.c"
 	cc -O -o forksum forksum.c -lm

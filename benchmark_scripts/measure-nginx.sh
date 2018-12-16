@@ -42,11 +42,11 @@ unset IFS
 nel=${#SORTED_V[@]}
 if (( $nel % 2 == 1 )); then     # Odd number of elements
     val="${SORTED_V[ $(($nel/2)) ]}"
-    printf "%s\n" "$val" # seconds
+    printf "%s,%s\n" "$(date +%s)" "$val" # seconds
 else                            # Even number of elements
     j=$nel/2
     k=$j-1
-    printf "%s\n" "$(awk '{printf("%.3f",($1+$2)/2)}' <<<"${SORTED_V[$j]} ${SORTED_V[$k]}")" # seconds
+    printf "%s,%s\n" "$(date +%s)" "$(awk '{printf("%.3f",($1+$2)/2)}' <<<"${SORTED_V[$j]} ${SORTED_V[$k]}")" # seconds
 fi
 
 exit 0

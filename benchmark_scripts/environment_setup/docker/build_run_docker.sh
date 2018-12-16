@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
+dockerContext=${1:-.}
+
 # only build docker image if it does not exist
-docker build -t mocc-benchmark .
+docker build -t mocc-benchmark ${dockerContext}
 
 # make sure the container is not already running
 docker stop mocc && docker rm mocc

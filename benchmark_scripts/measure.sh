@@ -2,11 +2,12 @@
 
 # configuration
 scriptFolder=/home/mocc/mocc_submission2/myct/benchmark_scripts
-resultFolder=/home/mocc/results
+resultFolder=/home/mocc/mocc_submission2/myct/benchmark_scripts/results
 system=${1:-"native"}
-nginxPort=80
+nginxPort=8080
 nSamplePoints=48
-# dropping system caches would need root priviledges (sudo is not enough!)
+# host: dropping system caches would need root priviledges (sudo is not enough!)
+# docker: /proc is only mounted as readonly file system
 dropCaches=false
 
 # prepare output files
@@ -29,10 +30,10 @@ fi
 cd ${scriptFolder}
 for (( i=0; i < ${nSamplePoints}; i++ )); do
     echo "Sampling in progress $((i+1)) / ${nSamplePoints}"
-    ./measure-cpu.sh >> ${resultFolder}/${system}-cpu.csv
-    ./measure-mem.sh >> ${resultFolder}/${system}-mem.csv
-    ./measure-disk-random.sh >> ${resultFolder}/${system}-disk-random.csv
-    ./measure-fork.sh >> ${resultFolder}/${system}-fork.csv
+    #./measure-cpu.sh >> ${resultFolder}/${system}-cpu.csv
+    #./measure-mem.sh >> ${resultFolder}/${system}-mem.csv
+    #./measure-disk-random.sh >> ${resultFolder}/${system}-disk-random.csv
+    #./measure-fork.sh >> ${resultFolder}/${system}-fork.csv
     ./measure-nginx.sh localhost:${nginxPort} >> ${resultFolder}/${system}-nginx.csv
 
     # flush to disk and drop caches

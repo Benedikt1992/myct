@@ -71,7 +71,7 @@ class CLI:
         """
         if unknown:
             raise argparse.ArgumentTypeError("Detected unknown arguments: {!s}".format(str(unknown)))
-        print("Command init with path: " + str(args.path))
+        print("Initialize new container at " + str(args.path))
         os.system('sudo debootstrap --no-merged-usr stable ' + args.path)
         os.system('sudo chown -R $(/usr/bin/id -run). ' + args.path)
 
@@ -83,7 +83,8 @@ class CLI:
         """
         if unknown:
             raise argparse.ArgumentTypeError("Detected unknown arguments: {!s}".format(str(unknown)))
-        print("Command map with container {}, host path {} and target {}.".format(args.cpath, args.hpath, args.tpath))
+        
+        # print("Command map with container {}, host path {} and target {}.".format(args.cpath, args.hpath, args.tpath))
         os.system(f"mkdir -p {args.cpath}{args.tpath} && sudo mount -o bind,ro {args.hpath} {args.cpath}{args.tpath}")
         print(f"{args.hpath} was mounted readonly in {args.cpath}:{args.tpath}")
 
@@ -94,7 +95,8 @@ class CLI:
         """
         if unknown:
             raise argparse.ArgumentTypeError("Detected unknown arguments: {!s}".format(str(unknown)))
-            print(f"Command umap with container {args.cpath} and target {args.tpath}.")
+
+        # print(f"Command umap with container {args.cpath} and target {args.tpath}.")
         os.system(f"sudo umount {args.cpath}{args.tpath} && rmdir {args.cpath}{args.tpath}")
         print(f"{args.tpath} unmapped from {args.cpath}")
 
@@ -113,13 +115,13 @@ class CLI:
 
         if args.limit and len(args.limit) > 0:
             # parse limit list
-            controllers = []
+            controllers = set()
             limit_commands = []
             for limit in args.limit:
                 controller, limit_key = limit['key'].split('.')
                 limit_value = limit['value']
 
-                controllers.append(controller)
+                controllers.add(controller)
                 limit_commands.append(f"-r {controller}.{limit_key}={limit_value}")
 
             # create cgroup and add limits
@@ -128,9 +130,9 @@ class CLI:
             create_cgroup = f"sudo cgcreate -a root:root -g {cg_name}"
             set_cgroup_limits = f"sudo cgset {current_pid} {' '.join(limit_commands)}"
 
-            print(create_cgroup)
+            # print(create_cgroup)
             os.system(create_cgroup)
-            print(set_cgroup_limits)
+            # print(set_cgroup_limits)
             os.system(set_cgroup_limits)
 
             execute_command += f"sudo cgexec -g {cg_name} "
@@ -185,7 +187,7 @@ class CLI:
         execute_command += final_exec
 
         # run command
-        print(execute_command)
+        # print(execute_command)
         os.system(execute_command)
 
         # delete cgroup

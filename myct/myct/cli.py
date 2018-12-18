@@ -107,11 +107,39 @@ class CLI:
         --limit <controller.key>=<value>
         """
         desired_namespaces_before_chroot = ['mount', 'ipc']
-        desired_namespaces_after_chroot = ['pid']
+        desired_namespaces_after_chroot = ['pid', 'cgroup']
         execute_command = ''
+        cg_name = ''
+
+        if args.limit and len(args.limit) > 0:
+            # parse limit list
+            controllers = []
+            limit_commands = []
+            for limit in args.limit:
+                controller, limit_key = limit['key'].split('.')
+                limit_value = limit['value']
+
+                controllers.append(controller)
+                limit_commands.append(f"-r {controller}.{limit_key}={limit_value}")
+
+            # create cgroup and add limits
+            current_pid = os.getpid()
+            cg_name = f"{','.join(controllers)}:{current_pid}"
+            create_cgroup = f"sudo cgcreate -a root:root -g {cg_name}"
+            set_cgroup_limits = f"sudo cgset {current_pid} {' '.join(limit_commands)}"
+
+            print(create_cgroup)
+            os.system(create_cgroup)
+            print(set_cgroup_limits)
+            os.system(set_cgroup_limits)
+
+            execute_command += f"sudo cgexec -g {cg_name} "
+
+        else:
+            execute_command += 'sudo '
 
         if args.namespace:
-            execute_command += 'sudo nsenter '
+            execute_command += 'nsenter '
             for ns in args.namespace:
                 if ns['key'] == 'mnt':
                     ns['key'] = 'mount'
@@ -127,7 +155,7 @@ class CLI:
                 if ns['key'] in desired_namespaces_after_chroot:
                     desired_namespaces_after_chroot.remove(ns['key'])
         else:
-            execute_command += 'sudo '
+            execute_command += ''
             desired_namespaces_after_chroot.append('fork')
             desired_namespaces_before_chroot.append('fork')
 
@@ -156,19 +184,13 @@ class CLI:
 
         execute_command += final_exec
 
+        # run command
         print(execute_command)
-
         os.system(execute_command)
 
-        # create cgroup
-        # > sudo cgcreate -a sebastian:sebastian -f 777 -g cpu:cg1
-        # move process to cgroup
-        # > sudo echo "$cpid" > cgroup.procs
-        # start process in cgroup
-        # > cgexec
-        # limit cpu
-        # > cgset cg1 -r cpu.shares=512
-
+        # delete cgroup
+        if args.limit and len(args.limit) > 0:
+            os.system(f"sudo cgdelete -g {cg_name}")
 
 def run():
     if os.name == 'nt':

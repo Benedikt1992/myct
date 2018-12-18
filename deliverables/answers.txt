@@ -3,28 +3,39 @@
 ## CPU benchmark questions
 
 1. Look at your LINPACK measurements. Are they consistent with your expectations? If not, what could be the reason?  
-
+   Most measurements meet our expectations.
+   Qemu without kvm is as we expected very slow.
+   All three, native, docker and qemu with kvm-support perform similarly well.
 
 ## Memory benchmark questions
 
 1. Look at your memsweep measurements. Are they consistent with your expectations? If not, what could be the reason?  
-   As expected, the binary translation results are the worst results since the table lookup is always interrupted by the host.
-   The other approaches are nearly the same values, which means docker and kvm are nearly as good as the native host system which is not surprising.
+   As expected, the binary translation results are the worst results since the table lookup is always interrupted by the virtual machine manager.
+   The other approaches are nearly the same values, which means docker and kvm are nearly as good as the native host system, which is not surprising as docker does not virtualize the memory and relies upon the OS mechanisms and kvm uses the hardware support of the CPU.
 
 ## Disk benchmark questions
 
 1. Look at your disk write measurements. Are they consistent with your expectations? If not, what could be the reason?  
    Surprisingly, the docker results are not as good as the native system.
-   We consider the layered filesystem (copy on write) of docker to be resposnible for the performance decrease.
-   As expected, the binary translation is again the worst result.
+   We consider the layered filesystem (copy on write) of docker to be responsible for the performance decrease.
+   As expected, the binary translation has again the worst results.
    The kvm result is almost as bad as the binary translation.
    We didn't expect kvm to be so bad.
-   This is probably due to the used disk format in qemu.
+   This is probably due to the used emulated block device adapter (using IDE) and its configuration in qemu.
+   There are also additional optimizations possible by using other qemu-parameters (e.g. alternatives to IDE) and tweaking the guest OS (e.g. changing guest OS disk scheduler strategies) and to improve storage performance.
+   We did not look into this any further.
 2. Which disk format did you use for qemu? How do you expect this benchmark to behave differently on other disk formats?
+   We used the raw (`.img`) format for both qemu with kvm-support and qemu with dbt benchmarks.
+   The other popular format is `qcow2`, which adds disk encryption, compression and copy-on-write functionality to the image.
+   We would expect the benchmark to perform worse on this image format as it introduces additional metadata and indirections.
+   `qcow` an `cow` are an older versions of `qcow2`, so the same applies to those formats.
+   `cloop` is a readonly live CD image format - no writes possible.
+   For the third-party image formats (`vmdk`, `vdi` and `vhdx`) we expect similar performance to `qcow2` as they also provide additional metadata and indirections (snapshot capabilities).
 
 ## Fork benchmark questions
 
 1. Look at your fork sum measurements. Are they consistent with your expectations? If not, what could be the reason?
+   
 2. [not optional] Why did we exclude this benchmark from the Rump Unikernel? How can you adapt the experiment for this platform?  
    Rump Unikernels do not provide virtual address spaces and this would cause problems with multiple processes.
    This means that Rumpkernel doesn't provide `fork()`.
@@ -34,10 +45,15 @@
 ## Nginx benchmark questions
 
 1. Look at your nginx measurements. Are they consistent with your expectations? If not, what could be the reason?
-
+    Generally, the measurements met our expectations.
+    The qemu test without kvm-support (dbt) shows substantial variance.
+    A possible cause for this is the high load on the guest system in relation to the guest's capabilities (see CPU benchmark: only a few kFLOPS) that is already introduced by two concurrent nginx downloads.
+    The nginx measurement on docker took usually twice as long to download a file.
+    A possible explanation for the runtime deterioration is the overhead introduced by the virtual network interface of docker.
 2. How do your measurements relate to the disk benchmark findings?  
-The results are very similar to the disk benchmarks, which is not surprising since we are doing disk operations.
-In contrast, the disk operations can be seen as sequential read.
-This results in minor differences in comparison to the random disk operations.
-The docker results are better compared to the disk benchmark results, since this test is read only (copy on write)
+   Docker performs at about 80 % IOPS of the native baseline in the random write benchmark while we observe a 50 % performance decline in the nginx benchmark.
+   In the course of the nginx benchmark a > 500 MB file is read sequentially as opposed to the random write benchmark.
+   We therefore expect the difference in performance to be due to the virtual network interface overhead in the nginx benchmark and only marginally influenced by differences in I/O performance.
 
+   For qemu with KVM-support we expect the disk read performance as the limiting factor for the nginx benchmark, since the CPU benchmark is comparable to the native platform and the I/O benchmark shows clear inferiority.
+   The qemu nginx benchmark without kvm-support is clearly limited by the overall bad performance of the emulated guest system.

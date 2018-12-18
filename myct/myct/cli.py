@@ -50,7 +50,7 @@ class CLI:
         parser_run.add_argument('path', metavar='<container-path>')
         parser_run.add_argument('exec', metavar='<executable>')
         parser_run.add_argument('exec_args', metavar='args', nargs='*')
-        parser_run.add_argument('--namespace', type=split_key_value, metavar='<kind>=<pid>', help='Join a namespace.')  # With 'type=' we could achieve automated splitting
+        parser_run.add_argument('--namespace', action='append', type=split_key_value, metavar='<kind>=<pid>', help='Join a namespace.')  # With 'type=' we could achieve automated splitting
         parser_run.add_argument('--limit', action='append', type=split_key_value, metavar='<controller.key>=<value>', help='Define limits. May repeat')  # With 'type=' we could achieve automated splitting
         parser_run.set_defaults(func=self._run_command)
 
@@ -91,6 +91,22 @@ class CLI:
         args.exec_args += unknown
         print("Command run with container {} and the executable {} with arguments {}.\nJoin namespace {} and set limits {}".format(
             args.path, args.exec, args.exec_args, args.namespace, args.limit))
+
+
+        execute_command = ''
+        if args.namespace:
+            execute_command += 'nsenter '
+            for ns in args.namespace:
+                if ns['key'] == 'mnt':
+                    ns['key'] == 'mount'
+                if ns['key'] == 'all':
+                    execute_command += '--all --target ' + ns['value'] + ' '
+                else:
+                    execute_command += '--' + ns['key'] + '=/proc/' + ns['value'] + '/ns/' + ns['key'] + ' '
+        execute_command += args.exec + ' ' + ' '.join(args.exec_args)
+
+        print(execute_command)
+
         # # TODO This is the better isolation but introduces several issues that need to be managed. E.g. apt wouldn't be able to install something. In fact no process could change any files.
         # # hints about the issue: https://unix.stackexchange.com/questions/487870/filesystem-permission-problems-with-user-namespaces-and-debootstrap
         # setup_commands_head = [
@@ -116,7 +132,7 @@ class CLI:
             'mount -t proc none /proc',
             'mount -t sysfs none /sys',
             'mount -t tmpfs none /tmp',
-            args.exec + ' ' + ' '.join(args.exec_args)
+            execute_command
         ]
         setup_commands_head.append("'" + ' && '.join(setup_commands_tail) + "'")
 

@@ -55,7 +55,7 @@ class CLI:
         parser_run.add_argument('path', metavar='<container-path>')
         parser_run.add_argument('exec', metavar='<executable>')
         parser_run.add_argument('exec_args', metavar='args', nargs='*')
-        parser_run.add_argument('--namespace', action='append', type=split_key_value, metavar='<kind>=<pid>', help='Join a namespace.')  # With 'type=' we could achieve automated splitting
+        parser_run.add_argument('--namespace', action='append', type=split_key_value, metavar='<kind>=<pid>', help='Join a namespace. As <kind> is available [all,ipc,mnt,net,pid,user,uts]. The user is responsible to choose a valid combination.')  # With 'type=' we could achieve automated splitting
         parser_run.add_argument('--limit', action='append', type=split_key_value, metavar='<controller.key>=<value>', help='Define limits. May repeat')  # With 'type=' we could achieve automated splitting
         parser_run.set_defaults(func=self._run_command)
 

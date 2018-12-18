@@ -161,6 +161,8 @@ Hugepagesize:       2048 kB
 DirectMap4k:      186380 kB
 DirectMap2M:     6049792 kB
 
+$ Hard drive: Samsung SSD 850 Evo
+
 $ cat /proc/version
 Linux version 4.15.0-42-generic (buildd@lgw01-amd64-023) (gcc version 7.3.0 (Ubuntu 7.3.0-16ubuntu3)) #45-Ubuntu SMP Thu Nov 15 19:32:57 UTC 2018
 

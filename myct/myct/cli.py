@@ -142,29 +142,6 @@ class CLI:
 
         os.system(execute_command)
 
-        # args.exec_args += unknown
-        # print("Command run with container {} and the executable {} with arguments {}.\nJoin namespace {} and set limits {}".format(
-        #     args.path, args.exec, args.exec_args, args.namespace, args.limit))
-        #
-        #
-        #
-        #
-        # setup_commands_head = [
-        #     'sudo unshare --mount --ipc --fork',
-        #     'chroot ' + args.path,
-        #     'unshare --pid --fork /bin/bash -c'
-        # ]
-        #
-        # setup_commands_tail = [
-        #     'mount -t proc none /proc',
-        #     'mount -t sysfs none /sys',
-        #     'mount -t tmpfs none /tmp',
-        #     execute_command
-        # ]
-        # setup_commands_head.append("'" + ' && '.join(setup_commands_tail) + "'")
-        #
-        # os.system(' '.join(setup_commands_head))
-
 
 def run():
     if os.name == 'nt':

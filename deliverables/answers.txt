@@ -13,7 +13,13 @@ The other approaches are nearly the same values, which means docker and kvm are 
 
 ## Disk benchmark questions
 
-1. Look at your disk write measurements. Are they consistent with your expectations? If not, what could be the reason?
+1. Look at your disk write measurements. Are they consistent with your expectations? If not, what could be the reason?  
+Surprisingly, the docker results are not as good as the native system.
+We consider the layered filesystem (copy on write) of docker to be resposnible for the performance decrease.
+As expected, the binary translation is again the worst result.
+The kvm result is almost as bad as the binary translation.
+We didn't expect kvm to be so bad.
+This is probably due to the used disk format in qemu.
 2. Which disk format did you use for qemu? How do you expect this benchmark to behave differently on other disk formats?
 
 ## Fork benchmark questions

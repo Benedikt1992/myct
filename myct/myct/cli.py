@@ -46,7 +46,12 @@ class CLI:
         parser_map.add_argument('tpath', metavar='<target-path>')
         parser_map.set_defaults(func=self._map_command)
 
-        parser_run = subparsers.add_parser('run', help='Runs the file exectuable in container with passed arguments')
+        parser_umap = subparsers.add_parser('umap', help='Unmounts a previously mounted target path')
+        parser_umap.add_argument('cpath', metavar='<container-path>')
+        parser_umap.add_argument('tpath', metavar='<target-path>')
+        parser_umap.set_defaults(func=self._umap_command)
+
+        parser_run = subparsers.add_parser('run', help='Runs the file executable in container with passed arguments')
         parser_run.add_argument('path', metavar='<container-path>')
         parser_run.add_argument('exec', metavar='<executable>')
         parser_run.add_argument('exec_args', metavar='args', nargs='*')
@@ -79,10 +84,23 @@ class CLI:
         if unknown:
             raise argparse.ArgumentTypeError("Detected unknown arguments: {!s}".format(str(unknown)))
         print("Command map with container {}, host path {} and target {}.".format(args.cpath, args.hpath, args.tpath))
+        os.system(f"mkdir -p {args.cpath}{args.tpath} && sudo mount -o bind,ro {args.hpath} {args.cpath}{args.tpath}")
+        print(f"{args.hpath} was mounted readonly in {args.cpath}:{args.tpath}")
+
+    def _umap_command(self, args, unknown):
+        """
+        Unmounts a previously mounted target path
+        $ myct umap <container-path> <target-path>
+        """
+        if unknown:
+            raise argparse.ArgumentTypeError("Detected unknown arguments: {!s}".format(str(unknown)))
+            print(f"Command umap with container {args.cpath} and target {args.tpath}.")
+        os.system(f"sudo umount {args.cpath}{args.tpath} && rmdir {args.cpath}{args.tpath}")
+        print(f"{args.tpath} unmapped from {args.cpath}")
 
     def _run_command(self, args, unknown):
         """
-        Runs the file exectuable in container with passed arguments
+        Runs the file executable in container with passed arguments
         $ myct run <container-path> [options] <executable> [args...]
         with options being:
         --namespace <kind>=<pid>

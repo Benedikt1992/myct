@@ -97,24 +97,29 @@ class CLI:
             for ns in args.namespace:
                 if ns['key'] == 'mnt':
                     ns['key'] = 'mount'
-                if ns['key'] == 'all':
+                    execute_command += '--' + ns['key'] + '=/proc/' + ns['value'] + '/ns/mnt '
+                elif ns['key'] == 'all':
                     execute_command += '--all --target ' + ns['value'] + ' '
                     desired_namespaces_before_chroot = []
                     desired_namespaces_after_chroot = []
                 else:
                     execute_command += '--' + ns['key'] + '=/proc/' + ns['value'] + '/ns/' + ns['key'] + ' '
-                if ns['key'] in desired_namespaces_before_chroot: desired_namespaces_before_chroot.remove(ns['key'])
-                if ns['key'] in desired_namespaces_after_chroot: desired_namespaces_after_chroot.remove(ns['key'])
+                if ns['key'] in desired_namespaces_before_chroot:
+                    desired_namespaces_before_chroot.remove(ns['key'])
+                if ns['key'] in desired_namespaces_after_chroot:
+                    desired_namespaces_after_chroot.remove(ns['key'])
         else:
             execute_command += 'sudo '
+            desired_namespaces_after_chroot.append('fork')
+            desired_namespaces_before_chroot.append('fork')
 
-        execute_command += 'unshare --fork '
+        execute_command += 'unshare '
         for ns in desired_namespaces_before_chroot:
             execute_command += '--' + ns + ' '
 
         execute_command += 'chroot ' + args.path + ' '
 
-        execute_command += 'unshare --fork '
+        execute_command += 'unshare '
         for ns in desired_namespaces_after_chroot:
             execute_command += '--' + ns + ' '
 

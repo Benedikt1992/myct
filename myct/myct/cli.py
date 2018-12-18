@@ -156,6 +156,15 @@ class CLI:
 
         os.system(' '.join(setup_commands_head))
 
+        # create cgroup
+        # > sudo cgcreate -a sebastian:sebastian -f 777 -g cpu:cg1
+        # move process to cgroup
+        # > sudo echo "$cpid" > cgroup.procs
+        # start process in cgroup
+        # > cgexec
+        # limit cpu
+        # > cgset cg1 -r cpu.shares=512
+
 
 def run():
     if os.name == 'nt':

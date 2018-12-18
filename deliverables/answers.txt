@@ -2,11 +2,14 @@
 
 ## CPU benchmark questions
 
-1. Look at your LINPACK measurements. Are they consistent with your expectations? If not, what could be the reason?
+1. Look at your LINPACK measurements. Are they consistent with your expectations? If not, what could be the reason?  
+
 
 ## Memory benchmark questions
 
-1. Look at your memsweep measurements. Are they consistent with your expectations? If not, what could be the reason?
+1. Look at your memsweep measurements. Are they consistent with your expectations? If not, what could be the reason?  
+As expected, the binary translation results are the worst results since the table lookup is always interrupted by the host.
+The other approaches are nearly the same values, which means docker and kvm are nearly as good as the native host system which is not surprising.
 
 ## Disk benchmark questions
 

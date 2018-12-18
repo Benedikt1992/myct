@@ -55,7 +55,7 @@ class CLI:
         parser_run.add_argument('path', metavar='<container-path>')
         parser_run.add_argument('exec', metavar='<executable>')
         parser_run.add_argument('exec_args', metavar='args', nargs='*')
-        parser_run.add_argument('--namespace', action='append', type=split_key_value, metavar='<kind>=<pid>', help='Join a namespace.')  # With 'type=' we could achieve automated splitting
+        parser_run.add_argument('--namespace', action='append', type=split_key_value, metavar='<kind>=<pid>', help='Join a namespace. As <kind> is available [all,ipc,mnt,net,pid,user,uts]. The user is responsible to choose a valid combination.')  # With 'type=' we could achieve automated splitting
         parser_run.add_argument('--limit', action='append', type=split_key_value, metavar='<controller.key>=<value>', help='Define limits. May repeat')  # With 'type=' we could achieve automated splitting
         parser_run.set_defaults(func=self._run_command)
 
@@ -106,55 +106,59 @@ class CLI:
         --namespace <kind>=<pid>
         --limit <controller.key>=<value>
         """
-        args.exec_args += unknown
-        print("Command run with container {} and the executable {} with arguments {}.\nJoin namespace {} and set limits {}".format(
-            args.path, args.exec, args.exec_args, args.namespace, args.limit))
-
-
+        desired_namespaces_before_chroot = ['mount', 'ipc']
+        desired_namespaces_after_chroot = ['pid']
         execute_command = ''
+
         if args.namespace:
-            execute_command += 'nsenter '
+            execute_command += 'sudo nsenter '
             for ns in args.namespace:
                 if ns['key'] == 'mnt':
-                    ns['key'] == 'mount'
-                if ns['key'] == 'all':
+                    ns['key'] = 'mount'
+                    execute_command += '--' + ns['key'] + '=/proc/' + ns['value'] + '/ns/mnt '
+                elif ns['key'] == 'all':
                     execute_command += '--all --target ' + ns['value'] + ' '
+                    desired_namespaces_before_chroot = []
+                    desired_namespaces_after_chroot = []
                 else:
                     execute_command += '--' + ns['key'] + '=/proc/' + ns['value'] + '/ns/' + ns['key'] + ' '
-        execute_command += args.exec + ' ' + ' '.join(args.exec_args)
+                if ns['key'] in desired_namespaces_before_chroot:
+                    desired_namespaces_before_chroot.remove(ns['key'])
+                if ns['key'] in desired_namespaces_after_chroot:
+                    desired_namespaces_after_chroot.remove(ns['key'])
+        else:
+            execute_command += 'sudo '
+            desired_namespaces_after_chroot.append('fork')
+            desired_namespaces_before_chroot.append('fork')
+
+        execute_command += 'unshare '
+        for ns in desired_namespaces_before_chroot:
+            execute_command += '--' + ns + ' '
+
+        execute_command += 'chroot ' + args.path + ' '
+
+        execute_command += 'unshare '
+        for ns in desired_namespaces_after_chroot:
+            execute_command += '--' + ns + ' '
+
+        execute_command += "/bin/bash -c "
+
+        if 'mount' in desired_namespaces_after_chroot or 'mount' in desired_namespaces_before_chroot:
+            final_exec = [
+                'mount -t proc none /proc',
+                'mount -t sysfs none /sys',
+                'mount -t tmpfs none /tmp',
+                args.exec + ' ' + ' '.join(args.exec_args)
+            ]
+            final_exec = "'" + ' && '.join(final_exec) + "'"
+        else:
+            final_exec = "'" + args.exec + ' ' + ' '.join(args.exec_args) + "'"
+
+        execute_command += final_exec
 
         print(execute_command)
 
-        # # TODO This is the better isolation but introduces several issues that need to be managed. E.g. apt wouldn't be able to install something. In fact no process could change any files.
-        # # hints about the issue: https://unix.stackexchange.com/questions/487870/filesystem-permission-problems-with-user-namespaces-and-debootstrap
-        # setup_commands_head = [
-        #     'unshare --mount --uts --ipc --net --fork --user --map-root-user',
-        #     'chroot ' + args.path,
-        #     'unshare --pid --fork /bin/bash -c'
-        #     ]
-        #
-        # setup_commands_tail = [
-        #     'mount -t proc none /proc',
-        #     'mount -t sysfs none /sys',
-        #     'mount -t tmpfs none /tmp',
-        #     args.exec + ' ' + ' '.join(args.exec_args)
-        # ]
-
-        setup_commands_head = [
-            'sudo unshare --mount --ipc --fork',
-            'chroot ' + args.path,
-            'unshare --pid --fork /bin/bash -c'
-        ]
-
-        setup_commands_tail = [
-            'mount -t proc none /proc',
-            'mount -t sysfs none /sys',
-            'mount -t tmpfs none /tmp',
-            execute_command
-        ]
-        setup_commands_head.append("'" + ' && '.join(setup_commands_tail) + "'")
-
-        os.system(' '.join(setup_commands_head))
+        os.system(execute_command)
 
         # create cgroup
         # > sudo cgcreate -a sebastian:sebastian -f 777 -g cpu:cg1

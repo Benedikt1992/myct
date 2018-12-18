@@ -8,28 +8,28 @@
 ## Memory benchmark questions
 
 1. Look at your memsweep measurements. Are they consistent with your expectations? If not, what could be the reason?  
-As expected, the binary translation results are the worst results since the table lookup is always interrupted by the host.
-The other approaches are nearly the same values, which means docker and kvm are nearly as good as the native host system which is not surprising.
+   As expected, the binary translation results are the worst results since the table lookup is always interrupted by the host.
+   The other approaches are nearly the same values, which means docker and kvm are nearly as good as the native host system which is not surprising.
 
 ## Disk benchmark questions
 
 1. Look at your disk write measurements. Are they consistent with your expectations? If not, what could be the reason?  
-Surprisingly, the docker results are not as good as the native system.
-We consider the layered filesystem (copy on write) of docker to be resposnible for the performance decrease.
-As expected, the binary translation is again the worst result.
-The kvm result is almost as bad as the binary translation.
-We didn't expect kvm to be so bad.
-This is probably due to the used disk format in qemu.
+   Surprisingly, the docker results are not as good as the native system.
+   We consider the layered filesystem (copy on write) of docker to be resposnible for the performance decrease.
+   As expected, the binary translation is again the worst result.
+   The kvm result is almost as bad as the binary translation.
+   We didn't expect kvm to be so bad.
+   This is probably due to the used disk format in qemu.
 2. Which disk format did you use for qemu? How do you expect this benchmark to behave differently on other disk formats?
 
 ## Fork benchmark questions
 
 1. Look at your fork sum measurements. Are they consistent with your expectations? If not, what could be the reason?
 2. [not optional] Why did we exclude this benchmark from the Rump Unikernel? How can you adapt the experiment for this platform?  
-We don't virtual address space and therefore problems with multiple processes (aka Rumpkernel doesn't provide fork).
-We could change forks into threads. 
-Rumpkernel makes hypercalls to use the plattforms thread scheduler.
-Hypercalls in Rumpkernel are the most equivalent principle compared to syscalls.
+   Rump Unikernels do not provide virtual address spaces and this would cause problems with multiple processes.
+   This means that Rumpkernel doesn't provide `fork()`.
+   To translate our experiment to the Rumpkernel platform, we could change from spawning processes (`fork()`) to spawning threads.
+   Rumpkernel makes hypercalls to use the plattform's thread scheduler and thus, hypercalls in Rumpkernel are the most equivalent principle compared to syscalls.
 
 ## Nginx benchmark questions
 

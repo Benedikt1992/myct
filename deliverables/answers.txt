@@ -35,4 +35,9 @@ Hypercalls in Rumpkernel are the most equivalent principle compared to syscalls.
 
 1. Look at your nginx measurements. Are they consistent with your expectations? If not, what could be the reason?
 
-2. How do your measurements relate to the disk benchmark findings?
+2. How do your measurements relate to the disk benchmark findings?  
+The results are very similar to the disk benchmarks, which is not surprising since we are doing disk operations.
+In contrast, the disk operations can be seen as sequential read.
+This results in minor differences in comparison to the random disk operations.
+The docker results are better compared to the disk benchmark results, since this test is read only (copy on write)
+

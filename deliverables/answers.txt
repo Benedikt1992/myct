@@ -35,8 +35,13 @@
 ## Fork benchmark questions
 
 1. Look at your fork sum measurements. Are they consistent with your expectations? If not, what could be the reason?
-   
-2. [not optional] Why did we exclude this benchmark from the Rump Unikernel? How can you adapt the experiment for this platform?  
+   The performance gap between QEMU without KVM-support and the other benchmarks is as to be expected due to QEMU having to handle each syscall (fork()) explititely by trapping and forwarding to the the host OS.
+   QEMU with KVM-support performs considerably worse than the native baseline and the benchmark run in a docker container.
+   This too is expected and likely because of the additional overhead introduced by switching the kernel out of and back into guest mode.
+   Surprisingly the native baseline benchmark performs slightly worse and with higher variance than the same benchmark executed in a docker container.
+   **TODO**
+
+2. [not optional] Why did we exclude this benchmark from the Rump Unikernel? How can you adapt the experiment for this platform?
    Rump Unikernels do not provide virtual address spaces and this would cause problems with multiple processes.
    This means that Rumpkernel doesn't provide `fork()`.
    To translate our experiment to the Rumpkernel platform, we could change from spawning processes (`fork()`) to spawning threads.

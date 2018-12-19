@@ -24,7 +24,7 @@
    This is probably due to the used emulated block device adapter (using IDE) and its configuration in qemu.
    There are also additional optimizations possible by using other qemu-parameters (e.g. alternatives to IDE) and tweaking the guest OS (e.g. changing guest OS disk scheduler strategies) and to improve storage performance.
    We did not look into this any further.
-2. Which disk format did you use for qemu? How do you expect this benchmark to behave differently on other disk formats?
+2. Which disk format did you use for qemu? How do you expect this benchmark to behave differently on other disk formats?  
    We used the raw (`.img`) format for both qemu with kvm-support and qemu with dbt benchmarks.
    The other popular format is `qcow2`, which adds disk encryption, compression and copy-on-write functionality to the image.
    We would expect the benchmark to perform worse on this image format as it introduces additional metadata and indirections.
@@ -34,14 +34,15 @@
 
 ## Fork benchmark questions
 
-1. Look at your fork sum measurements. Are they consistent with your expectations? If not, what could be the reason?
-   The performance gap between QEMU without KVM-support and the other benchmarks is as to be expected due to QEMU having to handle each syscall (fork()) explititely by trapping and forwarding to the the host OS.
+1. Look at your fork sum measurements. Are they consistent with your expectations? If not, what could be the reason?  
+   The performance gap between QEMU without KVM-support and the other benchmarks is as to be expected due to QEMU having to handle each syscall (fork()) explicitly by trapping and forwarding to the the host OS.
    QEMU with KVM-support performs considerably worse than the native baseline and the benchmark run in a docker container.
    This too is expected and likely because of the additional overhead introduced by switching the kernel out of and back into guest mode.
    Surprisingly the native baseline benchmark performs slightly worse and with higher variance than the same benchmark executed in a docker container.
-   **TODO**
+   The only reason we could imagine for this is that the linux' scheduler handles namespaces independently of the number of processes in one namespace.
+   Under this assumption, namespaces with fewer competing processes (like in docker) result in a higher compute time per process and therefore faster syscalls.
 
-2. [not optional] Why did we exclude this benchmark from the Rump Unikernel? How can you adapt the experiment for this platform?
+2. [not optional] Why did we exclude this benchmark from the Rump Unikernel? How can you adapt the experiment for this platform?  
    Rump Unikernels do not provide virtual address spaces and this would cause problems with multiple processes.
    This means that Rumpkernel doesn't provide `fork()`.
    To translate our experiment to the Rumpkernel platform, we could change from spawning processes (`fork()`) to spawning threads.
@@ -49,12 +50,12 @@
 
 ## Nginx benchmark questions
 
-1. Look at your nginx measurements. Are they consistent with your expectations? If not, what could be the reason?
-    Generally, the measurements met our expectations.
-    The qemu test without kvm-support (dbt) shows substantial variance.
-    A possible cause for this is the high load on the guest system in relation to the guest's capabilities (see CPU benchmark: only a few kFLOPS) that is already introduced by two concurrent nginx downloads.
-    The nginx measurement on docker took usually twice as long to download a file.
-    A possible explanation for the runtime deterioration is the overhead introduced by the virtual network interface of docker.
+1. Look at your nginx measurements. Are they consistent with your expectations? If not, what could be the reason?  
+   Generally, the measurements met our expectations.
+   The qemu test without kvm-support (dbt) shows substantial variance.
+   A possible cause for this is the high load on the guest system in relation to the guest's capabilities (see CPU benchmark: only a few kFLOPS) that is already introduced by two concurrent nginx downloads.
+   The nginx measurement on docker took usually twice as long to download a file.
+   A possible explanation for the runtime deterioration is the overhead introduced by the virtual network interface of docker.
 2. How do your measurements relate to the disk benchmark findings?  
    Docker performs at about 80 % IOPS of the native baseline in the random write benchmark while we observe a 50 % performance decline in the nginx benchmark.
    In the course of the nginx benchmark a > 500 MB file is read sequentially as opposed to the random write benchmark.

@@ -46,11 +46,16 @@ class CLI:
         parser_map.add_argument('tpath', metavar='<target-path>')
         parser_map.set_defaults(func=self._map_command)
 
-        parser_run = subparsers.add_parser('run', help='Runs the file exectuable in container with passed arguments')
+        parser_umap = subparsers.add_parser('umap', help='Unmounts a previously mounted target path')
+        parser_umap.add_argument('cpath', metavar='<container-path>')
+        parser_umap.add_argument('tpath', metavar='<target-path>')
+        parser_umap.set_defaults(func=self._umap_command)
+
+        parser_run = subparsers.add_parser('run', help='Runs the file executable in container with passed arguments')
         parser_run.add_argument('path', metavar='<container-path>')
         parser_run.add_argument('exec', metavar='<executable>')
         parser_run.add_argument('exec_args', metavar='args', nargs='*')
-        parser_run.add_argument('--namespace', type=split_key_value, metavar='<kind>=<pid>', help='Join a namespace.')  # With 'type=' we could achieve automated splitting
+        parser_run.add_argument('--namespace', action='append', type=split_key_value, metavar='<kind>=<pid>', help='Join a namespace. As <kind> is available [all,ipc,mnt,net,pid,user,uts]. The user is responsible to choose a valid combination.')  # With 'type=' we could achieve automated splitting
         parser_run.add_argument('--limit', action='append', type=split_key_value, metavar='<controller.key>=<value>', help='Define limits. May repeat')  # With 'type=' we could achieve automated splitting
         parser_run.set_defaults(func=self._run_command)
 
@@ -66,7 +71,7 @@ class CLI:
         """
         if unknown:
             raise argparse.ArgumentTypeError("Detected unknown arguments: {!s}".format(str(unknown)))
-        print("Command init with path: " + str(args.path))
+        print("Initialize new container at " + str(args.path))
         os.system('sudo debootstrap --no-merged-usr stable ' + args.path)
         os.system('sudo chown -R $(/usr/bin/id -run). ' + args.path)
 
@@ -78,50 +83,116 @@ class CLI:
         """
         if unknown:
             raise argparse.ArgumentTypeError("Detected unknown arguments: {!s}".format(str(unknown)))
-        print("Command map with container {}, host path {} and target {}.".format(args.cpath, args.hpath, args.tpath))
+        
+        # print("Command map with container {}, host path {} and target {}.".format(args.cpath, args.hpath, args.tpath))
+        os.system(f"mkdir -p {args.cpath}{args.tpath} && sudo mount -o bind,ro {args.hpath} {args.cpath}{args.tpath}")
+        print(f"{args.hpath} was mounted readonly in {args.cpath}:{args.tpath}")
+
+    def _umap_command(self, args, unknown):
+        """
+        Unmounts a previously mounted target path
+        $ myct umap <container-path> <target-path>
+        """
+        if unknown:
+            raise argparse.ArgumentTypeError("Detected unknown arguments: {!s}".format(str(unknown)))
+
+        # print(f"Command umap with container {args.cpath} and target {args.tpath}.")
+        os.system(f"sudo umount {args.cpath}{args.tpath} && rmdir {args.cpath}{args.tpath}")
+        print(f"{args.tpath} unmapped from {args.cpath}")
 
     def _run_command(self, args, unknown):
         """
-        Runs the file exectuable in container with passed arguments
+        Runs the file executable in container with passed arguments
         $ myct run <container-path> [options] <executable> [args...]
         with options being:
         --namespace <kind>=<pid>
         --limit <controller.key>=<value>
         """
-        args.exec_args += unknown
-        print("Command run with container {} and the executable {} with arguments {}.\nJoin namespace {} and set limits {}".format(
-            args.path, args.exec, args.exec_args, args.namespace, args.limit))
-        # # TODO This is the better isolation but introduces several issues that need to be managed. E.g. apt wouldn't be able to install something. In fact no process could change any files.
-        # # hints about the issue: https://unix.stackexchange.com/questions/487870/filesystem-permission-problems-with-user-namespaces-and-debootstrap
-        # setup_commands_head = [
-        #     'unshare --mount --uts --ipc --net --fork --user --map-root-user',
-        #     'chroot ' + args.path,
-        #     'unshare --pid --fork /bin/bash -c'
-        #     ]
-        #
-        # setup_commands_tail = [
-        #     'mount -t proc none /proc',
-        #     'mount -t sysfs none /sys',
-        #     'mount -t tmpfs none /tmp',
-        #     args.exec + ' ' + ' '.join(args.exec_args)
-        # ]
+        desired_namespaces_before_chroot = ['mount', 'ipc']
+        desired_namespaces_after_chroot = ['pid', 'cgroup']
+        execute_command = ''
+        cg_name = ''
 
-        setup_commands_head = [
-            'sudo unshare --mount --ipc --fork',
-            'chroot ' + args.path,
-            'unshare --pid --fork /bin/bash -c'
-        ]
+        if args.limit and len(args.limit) > 0:
+            # parse limit list
+            controllers = set()
+            limit_commands = []
+            for limit in args.limit:
+                controller, limit_key = limit['key'].split('.')
+                limit_value = limit['value']
 
-        setup_commands_tail = [
-            'mount -t proc none /proc',
-            'mount -t sysfs none /sys',
-            'mount -t tmpfs none /tmp',
-            args.exec + ' ' + ' '.join(args.exec_args)
-        ]
-        setup_commands_head.append("'" + ' && '.join(setup_commands_tail) + "'")
+                controllers.add(controller)
+                limit_commands.append(f"-r {controller}.{limit_key}={limit_value}")
 
-        os.system(' '.join(setup_commands_head))
+            # create cgroup and add limits
+            current_pid = os.getpid()
+            cg_name = f"{','.join(controllers)}:{current_pid}"
+            create_cgroup = f"sudo cgcreate -a root:root -g {cg_name}"
+            set_cgroup_limits = f"sudo cgset {current_pid} {' '.join(limit_commands)}"
 
+            # print(create_cgroup)
+            os.system(create_cgroup)
+            # print(set_cgroup_limits)
+            os.system(set_cgroup_limits)
+
+            execute_command += f"sudo cgexec -g {cg_name} "
+
+        else:
+            execute_command += 'sudo '
+
+        if args.namespace:
+            execute_command += 'nsenter '
+            for ns in args.namespace:
+                if ns['key'] == 'mnt':
+                    ns['key'] = 'mount'
+                    execute_command += '--' + ns['key'] + '=/proc/' + ns['value'] + '/ns/mnt '
+                elif ns['key'] == 'all':
+                    execute_command += '--all --target ' + ns['value'] + ' '
+                    desired_namespaces_before_chroot = []
+                    desired_namespaces_after_chroot = []
+                else:
+                    execute_command += '--' + ns['key'] + '=/proc/' + ns['value'] + '/ns/' + ns['key'] + ' '
+                if ns['key'] in desired_namespaces_before_chroot:
+                    desired_namespaces_before_chroot.remove(ns['key'])
+                if ns['key'] in desired_namespaces_after_chroot:
+                    desired_namespaces_after_chroot.remove(ns['key'])
+        else:
+            execute_command += ''
+            desired_namespaces_after_chroot.append('fork')
+            desired_namespaces_before_chroot.append('fork')
+
+        execute_command += 'unshare '
+        for ns in desired_namespaces_before_chroot:
+            execute_command += '--' + ns + ' '
+
+        execute_command += 'chroot ' + args.path + ' '
+
+        execute_command += 'unshare '
+        for ns in desired_namespaces_after_chroot:
+            execute_command += '--' + ns + ' '
+
+        execute_command += "/bin/bash -c "
+
+        if 'mount' in desired_namespaces_after_chroot or 'mount' in desired_namespaces_before_chroot:
+            final_exec = [
+                'mount -t proc none /proc',
+                'mount -t sysfs none /sys',
+                'mount -t tmpfs none /tmp',
+                args.exec + ' ' + ' '.join(args.exec_args)
+            ]
+            final_exec = "'" + ' && '.join(final_exec) + "'"
+        else:
+            final_exec = "'" + args.exec + ' ' + ' '.join(args.exec_args) + "'"
+
+        execute_command += final_exec
+
+        # run command
+        # print(execute_command)
+        os.system(execute_command)
+
+        # delete cgroup
+        if args.limit and len(args.limit) > 0:
+            os.system(f"sudo cgdelete -g {cg_name}")
 
 def run():
     if os.name == 'nt':
